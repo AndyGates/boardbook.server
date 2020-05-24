@@ -7,7 +7,7 @@ import os
 import psycopg2
 import json
 
-DATABASE_URL = 'postgresql://postgres:password@localhost:5432/boardbook' #os.getenv('DATABASE_URL')
+DATABASE_URL = os.getenv('DATABASE_URL')
 
 # instantiate the app
 app = Flask(__name__)
