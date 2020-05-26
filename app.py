@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -28,6 +28,14 @@ class Board(db.Model):
         self.name = name
         self.image = image
         self.holds = holds
+    
+    def to_json(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "image": self.image,
+            "holds": json.dumps(self.holds),
+        }
 
 class Problem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -42,22 +50,19 @@ class Problem(db.Model):
         self.grade = grade
         self.holds = holds
 
-Problems = [
-    {
-        'name'  : 'Problem 1',
-        'grade' : '6A',
-        'holds' : [1, 5, 20],
-    },
-    {
-        'name'  : 'Problem 2',
-        'grade' : '7A',
-        'holds' : [20, 43, 10],
-    },
-    {
-        'name'  : 'Problem 3',
-        'grade' : '8A',
-        'holds' : [15, 26, 66]
-    }
+    def to_json(self):
+        return {
+            "id": self.id,
+            'board_id': self.board_id,
+            "name": self.name,
+            "grade": self.grade,
+            "holds": json.dumps(self.holds),
+        }
+
+Problems = [ 
+    Problem(0, 'Problem 1', '6A', [1, 5, 20]),
+    Problem(0, 'Problem 2', '7A', [1, 5, 20, 43, 10]),
+    Problem(0, 'Problem 3', '8A', [1, 5, 20, 15, 26, 66])
 ]
 
 conn = psycopg2.connect(DATABASE_URL, sslmode='prefer')
@@ -66,25 +71,31 @@ print("DB CONNECTION: " + DATABASE_URL)
 # enable CORS
 CORS(app, resources={r'/*': {'origins': '*'}})
 
-@app.route('/problems', methods=['GET'])
-def getProblems():
-    return jsonify({
-        'status': 'success',
-        'problems': Problems
-    })
+@app.route('/problems', methods=['GET', 'POST'])
+def problems():
+    response = { 'status' : 'success' }
+
+    if request.method == 'POST':
+        postData = request.get_json()
+        print(postData)
+    else:
+        response['problems'] = [p.to_json() for p in Problems]
+    
+    return jsonify(response)
 
 @app.route('/board', methods=['GET'])
 def getBoardData():
+    testBoard = getTestBoard().to_json()
     return jsonify({
         'status': 'success',
-        'board': addTestBoard()
+        'board': testBoard
     })
 
 @app.route('/test', methods=['POST'])
 def test():
     
     b = addTestBoard()
-    bobj = Board(b['name'], b['image'], jsonify(b['holds']))
+    bobj = Board(b['name'], b['image'], json.dumps(b['holds']))
 
     db.session.add(bobj)
     db.session.commit()
@@ -101,16 +112,11 @@ def loadHolds(path):
         data = json.load(json_file)
         return data['holds']
 
-def addTestBoard():
-    DataPath = os.path.join(os.path.dirname(__file__), 'data.json')
-    
-    Board = { 
-        'name' : "Home Board",
-        'image': "board.png",
-        'holds': loadHolds(DataPath)
-    }
+DataPath = os.path.join(os.path.dirname(__file__), 'data.json')
+TestBoard = Board("Home Board", "board.png", loadHolds(DataPath))
 
-    return Board
+def getTestBoard():
+    return TestBoard
 
 if __name__ == '__main__':
     app.run(host= '0.0.0.0')
