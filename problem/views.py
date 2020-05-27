@@ -11,14 +11,9 @@ blueprint = Blueprint('problem', __name__)
 @blueprint.route('/problems', methods=['GET'])
 def get_problems():
     response = { 'status' : 'success' }
+    problems = Problem.query.filter(Problem.board_id == 1).all()
 
-    Problems = [ 
-        Problem(0, 'Problem 1', '6A', [1, 5, 20]),
-        Problem(0, 'Problem 2', '7A', [1, 5, 20, 43, 10]),
-        Problem(0, 'Problem 3', '8A', [1, 5, 20, 15, 26, 66])
-    ]
-
-    response['problems'] = [p.to_json() for p in Problems]    
+    response['problems'] = [p.to_json() for p in problems]    
     return jsonify(response)
 
 @blueprint.route('/problems', methods=['POST'])
@@ -27,7 +22,10 @@ def add_problem():
 
     post_data = request.get_json()
     if(post_data):
-        print(post_data)
+        p = Problem(1, post_data['name'], post_data['grade'], post_data['holds'])
+        db.session.add(p)
+        db.session.commit()
+        print("Added problem: id " + p.id)
     else:
         print("Failed to get problem data from request")
 
