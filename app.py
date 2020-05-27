@@ -4,8 +4,6 @@ import problem, board
 from flask import Flask
 from extensions import db, migrate, cors
 
-app = {}
-
 def create_app():
     database_url = os.getenv('DATABASE_URL')
 
@@ -31,6 +29,7 @@ def register_blueprints(app):
     app.register_blueprint(problem.views.blueprint)
     app.register_blueprint(board.views.blueprint)
 
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
     app.run(host= '0.0.0.0')
