@@ -20,7 +20,7 @@ def get_board_data():
 @blueprint.route('/addTestBoard', methods=['POST'])
 def addTestBoard():
         
-    data_path = os.path.join(os.path.dirname(__file__), 'data.json')
+    data_path = os.path.join(os.path.dirname(__file__), '../data.json')
     test_board = Board("Home Board", "board.png", load_holds(data_path))
     
     db.session.add(test_board)
