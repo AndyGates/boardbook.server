@@ -17,7 +17,7 @@ def get_board_data():
         'board': first_board.to_json()
     })
 
-@blueprint.route('/addTestBoard', methods=['POST'])
+@blueprint.route('/addTestBoard', methods=['GET'])
 def addTestBoard():
         
     data_path = os.path.join(os.path.dirname(__file__), '../data.json')
